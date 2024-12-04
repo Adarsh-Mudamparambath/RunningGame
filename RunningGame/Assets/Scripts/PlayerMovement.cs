@@ -3,39 +3,44 @@ using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
-    bool alive = true;
-    public float playerSpeed = 2;
-    public float horizontalSpeed = 3;
-
-    // Update is called once per frame
-    void Update()
-    {
-        if(!alive) return;
-        
-        transform.Translate(Vector3.forward * (Time.deltaTime * playerSpeed), Space.World);
-
-        if(Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+    public float forwardSpeed = 10f;
+        public float strafeSpeed = 5f;
+        public float jumpForce = 8f;
+        private float gravity = -9.8f;
+        private float verticalVelocity; // For jumping and falling
+    
+        private CharacterController controller;
+    
+        void Start()
         {
-
-            transform.Translate(Vector3.left * (Time.deltaTime * horizontalSpeed) );
-
+            controller = GetComponent<CharacterController>();
         }
-        if(Input.GetKey(KeyCode.D)|| Input.GetKey(KeyCode.RightArrow))
+    
+        void Update()
         {
-
-            transform.Translate(Vector3.left * (Time.deltaTime * horizontalSpeed * -1));
-
+            // Forward movement
+            Vector3 forwardMovement = transform.forward * forwardSpeed;
+    
+            // Left-Right movement
+            float horizontalInput = Input.GetAxis("Horizontal");
+            Vector3 strafeMovement = transform.right * horizontalInput * strafeSpeed;
+    
+            // Apply gravity
+            if (controller.isGrounded)
+            {
+                verticalVelocity = 0; // Reset when grounded
+    
+                // Jump
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    verticalVelocity = jumpForce;
+                }
+            }
+            verticalVelocity += gravity * Time.deltaTime; // Apply gravity over time
+    
+            // Combine movements
+            Vector3 movement = forwardMovement + strafeMovement + Vector3.up * verticalVelocity;
+            controller.Move(movement * Time.deltaTime);
         }
-
-        if (transform.position.y < -5)
-        {
-            Die();
-        }
-    }
-
-    public void Die()
-    {
-        alive = false;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
